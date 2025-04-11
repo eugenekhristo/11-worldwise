@@ -12,20 +12,42 @@ import {
 
 import styles from './Map.module.css';
 import { useCities } from '../contexts/CitiesContext';
+import Button from './Button';
+import { useGeolocation } from '../hooks/useGeolocation';
+import { useUrlPosition } from '../hooks/useurlPosition';
 
 function Map() {
   const { cities } = useCities();
   const [mapPosition, setMapPosition] = useState([40, 0]);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const mapLat = searchParams.get('lat');
-  const mapLng = searchParams.get('lng');
+  const [lat, lng] = useUrlPosition();
+  const {
+    isLoading: isLoadingCurrent,
+    position: positionCurrent,
+    getPosition: getPositionCurrent,
+  } = useGeolocation();
 
   useEffect(() => {
-    if (mapLat && mapLng) setMapPosition([mapLat, mapLng]);
-  }, [mapLat, mapLng]);
+    if (lat && lng) setMapPosition([lat, lng]);
+  }, [lat, lng]);
+
+  useEffect(() => {
+    if (positionCurrent)
+      setMapPosition([positionCurrent.lat, positionCurrent.lng]);
+  }, [positionCurrent]);
 
   return (
     <div className={styles.mapContainer}>
+      {!positionCurrent && (
+        <Button
+          type="position"
+          onClick={() => {
+            getPositionCurrent();
+          }}
+        >
+          {isLoadingCurrent ? 'Loading...' : 'Get my position'}
+        </Button>
+      )}
+
       <MapContainer
         className={styles.map}
         center={mapPosition}
@@ -49,7 +71,7 @@ function Map() {
         ))}
 
         <ChangeCenter position={mapPosition} />
-        <DetectClick />
+        <DetectClick setMapPosition={setMapPosition} />
       </MapContainer>
     </div>
   );
@@ -61,11 +83,12 @@ function ChangeCenter({ position }) {
   return null;
 }
 
-function DetectClick() {
+function DetectClick({ setMapPosition }) {
   const navigate = useNavigate();
   useMapEvents({
     click: (e) => {
-      navigate(`form?lat=${e.latlng.lat}&${e.latlng.lng}`);
+      setMapPosition([e.latlng.lat, e.latlng.lng]);
+      navigate(`form?lat=${e.latlng.lat}&lng=${e.latlng.lng}`);
     },
   });
 }
