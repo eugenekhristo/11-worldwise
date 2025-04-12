@@ -65,13 +65,13 @@ function Map() {
             key={city.id}
           >
             <Popup>
-              A pretty CSS3 popup. <br /> Easily customizable.
+              <span>{city.emoji}</span> <span>{city.cityName}</span>
             </Popup>
           </Marker>
         ))}
 
         <ChangeCenter position={mapPosition} />
-        <DetectClick setMapPosition={setMapPosition} />
+        <DetectClick />
       </MapContainer>
     </div>
   );
@@ -83,11 +83,11 @@ function ChangeCenter({ position }) {
   return null;
 }
 
-function DetectClick({ setMapPosition }) {
+function DetectClick() {
   const navigate = useNavigate();
   useMapEvents({
     click: (e) => {
-      setMapPosition([e.latlng.lat, e.latlng.lng]);
+      // setMapPosition([e.latlng.lat, e.latlng.lng]);
       navigate(`form?lat=${e.latlng.lat}&lng=${e.latlng.lng}`);
     },
   });
